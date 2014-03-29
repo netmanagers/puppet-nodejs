@@ -51,6 +51,12 @@
 # [*npm_package*]
 #   The name of npm package
 #
+# [*install_npm_from_script*]
+#   Install npm with a direct download piped through bash. This is useful for
+#   distributions where npm is not available as a package. Note this requires
+#   node to be present as an executable, for example for Debian it requires
+#   using the 'nodejs-legacy' package instead of the 'nodejs' package.
+#
 # [*npm_proxy*]
 #   If npm uses a proxy, specify it here.
 #   Default: empty
@@ -63,22 +69,21 @@
 #
 # See README for details.
 #
-#
 class nodejs (
-  $my_class            = params_lookup( 'my_class' ),
-  $options             = params_lookup( 'options' ),
-  $version             = params_lookup( 'version' ),
-  $absent              = params_lookup( 'absent' ),
-  $audit_only          = params_lookup( 'audit_only' , 'global' ),
-  $noops               = params_lookup( 'noops' ),
-  $nodejs_package      = params_lookup( 'nodejs_package' ),
-  $npm_package         = params_lookup( 'npm_package' ),
-  $npm_local_dir       = params_lookup( 'npm_local_dir' ),
-  $npm_proxy           = params_lookup( 'npm_proxy' )
-  ) inherits nodejs::params {
-
-  $bool_absent=any2bool($absent)
-  $bool_audit_only=any2bool($audit_only)
+  $my_class                = params_lookup( 'my_class' ),
+  $options                 = params_lookup( 'options' ),
+  $version                 = params_lookup( 'version' ),
+  $absent                  = params_lookup( 'absent' ),
+  $audit_only              = params_lookup( 'audit_only', 'global' ),
+  $noops                   = params_lookup( 'noops' ),
+  $nodejs_package          = params_lookup( 'nodejs_package' ),
+  $npm_package             = params_lookup( 'npm_package' ),
+  $npm_local_dir           = params_lookup( 'npm_local_dir' ),
+  $install_npm_from_script = params_lookup( 'install_npm_from_script' ),
+  $npm_proxy               = params_lookup( 'npm_proxy' )) inherits nodejs::params {
+  $bool_absent = any2bool($absent)
+  $bool_audit_only = any2bool($audit_only)
+  $bool_install_npm_from_script = any2bool($install_npm_from_script)
 
   ### Definition of some variables used in the module
   $manage_package = $nodejs::bool_absent ? {
@@ -107,9 +112,18 @@ class nodejs (
     noop    => $nodejs::noops,
   }
 
-  package { $nodejs::npm_package:
-    ensure  => $nodejs::manage_package,
-    noop    => $nodejs::noops,
+  if ($nodejs::bool_install_npm_from_script) {
+    exec { 'install-npm':
+      command => '/usr/bin/curl --insecure https://www.npmjs.org/install.sh | clean=no bash',
+      creates => '/usr/bin/npm',
+      require => Package[$nodejs::nodejs_package],
+      logoutput => 'on_failure',
+    }
+  } else {
+    package { $nodejs::npm_package:
+      ensure => $nodejs::manage_package,
+      noop   => $nodejs::noops,
+    }
   }
 
   if $npm_proxy != '' {
