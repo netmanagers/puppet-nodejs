@@ -80,7 +80,9 @@ class nodejs (
   $npm_package             = params_lookup( 'npm_package' ),
   $npm_local_dir           = params_lookup( 'npm_local_dir' ),
   $install_npm_from_script = params_lookup( 'install_npm_from_script' ),
-  $npm_proxy               = params_lookup( 'npm_proxy' )) inherits nodejs::params {
+  $npm_proxy               = params_lookup( 'npm_proxy' )
+  ) inherits nodejs::params {
+
   $bool_absent = any2bool($absent)
   $bool_audit_only = any2bool($audit_only)
   $bool_install_npm_from_script = any2bool($install_npm_from_script)

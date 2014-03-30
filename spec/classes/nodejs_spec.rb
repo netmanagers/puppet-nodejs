@@ -23,6 +23,12 @@ describe 'nodejs' do
       }
     end
 
+  describe 'Test installation install from script' do
+    let(:params) { {:version => '1.0.42', 'install_npm_from_script' => true } }
+    it { should_not contain_package('npm').with_ensure('1.0.42') }
+    it { should contain_exec('install-npm') }
+  end
+
     let :params do
       { :npm_proxy => 'http://proxy.puppetlabs.lan:80/' }
     end
