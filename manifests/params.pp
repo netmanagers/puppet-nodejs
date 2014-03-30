@@ -27,6 +27,7 @@ class nodejs::params {
 
   $npm_proxy = ''
   $npm_local_dir = '/opt/razor'
+  $install_npm_from_script = false
 
   # General Settings
   $my_class = ''
